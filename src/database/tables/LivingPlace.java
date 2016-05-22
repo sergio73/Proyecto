@@ -5,11 +5,19 @@
  */
 package database.tables;
 
+import annotations.Column;
+import annotations.Table;
+
 /**
  *
  * @author Sergio Delgado Baringo
  */
+@Table(name = "vivienda")
 public class LivingPlace {
-    private int rooms;
-    private int property_id;
+    @Column(name = "id", type = int.class)
+    public int id;
+    @Column(name = "habitaciones", type = int.class)
+    public int rooms;
+    @Column(name = "propiedad_id", type = int.class)
+    public int property_id;
 }

@@ -5,14 +5,26 @@
  */
 package database.tables;
 
+import annotations.Column;
+import annotations.Table;
+
+
 /**
  *
  * @author Sergio Delgado Baringo
  */
+@Table(name = "persona")
 public class Person {
-    private String name;
-    private String lastName;
-    private String position;
-    private String direction;
-    private String phone;
+    @Column(name = "id", type = int.class)
+    public int id;
+    @Column(name = "nombre", type = String.class)
+    public String name;
+    @Column(name = "apellidos", type = String.class)
+    public String lastName;
+    @Column(name = "cargo", type = String.class)
+    public String position;
+    @Column(name = "direccion", type = String.class)
+    public String direction;
+    @Column(name = "telefono", type = String.class)
+    public String phone;
 }
