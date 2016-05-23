@@ -6,9 +6,10 @@
 package proyectofinal;
 
 import database.DataBase;
+import database.DataBaseManager;
 
 /**
- *
+ * 
  * @author Sergio Delgado Baringo
  */
 public class ProyectoFinal {
@@ -17,8 +18,9 @@ public class ProyectoFinal {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        DataBase.getInstance().init("local", "root", "root", "localhost");
-        GUI.Main main = new GUI.Main();
+        //Initialize the dataBaseManager
+        DataBaseManager.getInstance().setDataBase(new DataBase("xe", "root", "root", "jdbc:oracle:thin:@localhost:1521:"));
+        new GUI.Main();
     }
     
 }
