@@ -5,7 +5,7 @@
  */
 package database;
 
-import annotations.Column;
+import database.annotations.Column;
 import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;

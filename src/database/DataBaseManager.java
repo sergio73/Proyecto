@@ -5,7 +5,7 @@
  */
 package database;
 
-import annotations.Table;
+import database.annotations.Table;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This manager automatize all sql query
+ * This manager automatize all sql queries
  * 
  * @author Sergio Delgado Baringo
  */
@@ -97,8 +97,9 @@ public class DataBaseManager {
     /**
      * Inserts an object into the database
      * @param o 
+     * @throws java.sql.SQLException 
      */
-    public void save(Object o){
+    public void save(Object o) throws SQLException{
         int nextId = this.getLastId(this.getTableName(o)) + 1;
         
         String query = "INSERT INTO ";
@@ -147,8 +148,9 @@ public class DataBaseManager {
     /**
      * Update a record in the database
      * @param o 
+     * @throws java.sql.SQLException 
      */
-    public void update(Object o){
+    public void update(Object o) throws SQLException{
         String query = "UPDATE ";
         
         query += this.getTableName(o);
@@ -177,6 +179,43 @@ public class DataBaseManager {
     }
     
     /**
+     * Searchs an object in the database and remove it
+     * @param o 
+     * @throws java.sql.SQLException 
+     */
+    public void delete(Object o) throws SQLException{
+        
+        Record[] records = this.getRecords(o);
+        int id = 0;
+        
+        for(int i=0; i<records.length; i++){
+            //Save the id and skip record
+            if(records[i].getName().equals("id")){
+                id = (int)records[i].getValue();
+                break;
+            }
+        }
+        
+        this.deleteById(o.getClass(), id);
+    }
+    
+    /**
+     * Removes an element by their id
+     * @param type
+     * @param id 
+     */
+    public void deleteById(Class type, int id) throws SQLException{
+        String query = "DELETE FROM ";
+        
+        query += ((Table)type.getAnnotation(Table.class)).name();
+        query += " WHERE id = " + id;
+        
+        this.dataBase.open();
+        this.dataBase.execute(query);
+        this.dataBase.close();
+    }
+    
+    /**
      * Find one record by id
      * @param type
      * @param id
@@ -189,27 +228,19 @@ public class DataBaseManager {
             this.dataBase.open();
             
             ResultSet set = this.dataBase.find("SELECT * FROM "+ this.getTableName(o) +" WHERE id = " + id);
-            set.next();
-            
-            Record[] records = this.getRecords(o);
-            for(int i=0; i<records.length; i++){
-                Object value = set.getObject(records[i].getName());
-                
-                //Set values
-                if(value != null){
-                    
-                    if(records[i].getType() == int.class){
-                        records[i].getField().set(o, Integer.parseInt(value.toString()));
-                    }else if(records[i].getType() == float.class){
-                        records[i].getField().set(o, Float.parseFloat(value.toString()));
-                    }else if(records[i].getType() == double.class){
-                        records[i].getField().set(o, Double.parseDouble(value.toString()));
-                    }else if(records[i].getType() == String.class){
-                        records[i].getField().set(o, value.toString());
+            if(set.next()){
+
+                Record[] records = this.getRecords(o);
+                for(int i=0; i<records.length; i++){
+                    Object value = set.getObject(records[i].getName());
+
+                    //Set values
+                    if(value != null){
+
+                        assignField(records[i], o, value);
                     }
-                }
-            }          
-            
+                }          
+            }
             set.close();
         } catch (InstantiationException ex) {
             Logger.getLogger(DataBaseManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -217,9 +248,30 @@ public class DataBaseManager {
             Logger.getLogger(DataBaseManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Logger.getLogger(DataBaseManager.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            this.dataBase.close();
-            return o;
+        } 
+        this.dataBase.close();
+        return o;
+    }
+    
+    /**
+     * Assign a field the value in the correct type
+     * @param r
+     * @param o
+     * @param v
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException 
+     */
+    private void assignField(Record r, Object o, Object v) throws IllegalArgumentException, IllegalAccessException{
+        if(r.getType() == int.class){
+            r.getField().set(o, Integer.parseInt(v.toString()));
+        }else if(r.getType() == float.class){
+            r.getField().set(o, Float.parseFloat(v.toString()));
+        }else if(r.getType() == double.class){
+            r.getField().set(o, Double.parseDouble(v.toString()));
+        }else if(r.getType() == String.class){
+            r.getField().set(o, v.toString());
+        }else if(r.getType() == char.class){
+            r.getField().set(o, v.toString().charAt(0));
         }
     }
     
@@ -247,15 +299,7 @@ public class DataBaseManager {
                     //Set values
                     if(value != null){
 
-                        if(records[i].getType() == int.class){
-                            records[i].getField().set(o, Integer.parseInt(value.toString()));
-                        }else if(records[i].getType() == float.class){
-                            records[i].getField().set(o, Float.parseFloat(value.toString()));
-                        }else if(records[i].getType() == double.class){
-                            records[i].getField().set(o, Double.parseDouble(value.toString()));
-                        }else if(records[i].getType() == String.class){
-                            records[i].getField().set(o, value.toString());
-                        }
+                        assignField(records[i], o, value);
                     }
                 }
                 
@@ -269,10 +313,9 @@ public class DataBaseManager {
             Logger.getLogger(DataBaseManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Logger.getLogger(DataBaseManager.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            this.dataBase.close();
-            return objects.toArray();
         }
+        this.dataBase.close();
+        return objects.toArray();
     }
     
     /**
@@ -290,7 +333,7 @@ public class DataBaseManager {
      * @param o
      * @return 
      */
-    private Record[] getRecords(Object o){
+    public static Record[] getRecords(Object o){
         Field[] fields = o.getClass().getFields();
         Record[] records = new Record[fields.length];
         

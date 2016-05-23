@@ -78,31 +78,25 @@ public class DataBase {
     /**
      * Execute a insert query
      * @param query
+     * @throws java.sql.SQLException
      */
-    public void execute(String query){
-        try {
-            Statement stmt = this.connection.createStatement();
-            stmt.executeUpdate(query);
-        } catch (SQLException ex) {
-            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+    public void execute(String query) throws SQLException{
+        Statement stmt = this.connection.createStatement();
+        stmt.executeUpdate(query);
     }
     
     /**
      * Execute a search query
      * @param query
      * @return 
+     * @throws java.sql.SQLException 
      */
-    public ResultSet find(String query){        
+    public ResultSet find(String query) throws SQLException{        
         Statement st = null;
         ResultSet rs = null;
         
-        try {
-            st = this.connection.createStatement();
-            rs = st.executeQuery(query);
-        } catch (SQLException ex) {
-            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        st = this.connection.createStatement();
+        rs = st.executeQuery(query);
         
         return rs;
     }

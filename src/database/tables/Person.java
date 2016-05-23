@@ -5,12 +5,12 @@
  */
 package database.tables;
 
-import annotations.Column;
-import annotations.Table;
+import database.annotations.Column;
+import database.annotations.Table;
 
 
 /**
- *
+ * Table person
  * @author Sergio Delgado Baringo
  */
 @Table(name = "persona")
